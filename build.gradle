@@ -1,0 +1,63 @@
+plugins {
+    id 'java'
+    id 'net.serenity-bdd.serenity-gradle-plugin' version '5.4.1'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+}
+
+repositories { mavenCentral() }
+
+ext {
+    serenityVersion = '4.2.34'
+    cucumberVersion = '7.22.2'
+    junitPlatformVersion = '1.13.0'
+    lombokVersion = '1.18.38'
+}
+
+dependencies {
+    // Serenity BDD
+    testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-junit5:${serenityVersion}"
+    testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
+
+    // Cucumber + JUnit 5 Platform
+    testImplementation "io.cucumber:cucumber-java:${cucumberVersion}"
+    testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
+    testImplementation "org.junit.platform:junit-platform-suite:${junitPlatformVersion}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
+
+    // JSON Schema validation
+    testImplementation 'io.rest-assured:json-schema-validator:5.5.5'
+
+    // Assertions and test data
+    testImplementation 'org.assertj:assertj-core:3.27.3'
+    testImplementation 'net.datafaker:datafaker:2.4.3'
+
+    // Lombok
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // Logging
+    testImplementation 'org.slf4j:slf4j-simple:2.0.17'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging { events 'passed', 'skipped', 'failed'; exceptionFormat 'full' }
+    // Pass -D properties through to tests (environment, cucumber.filter.tags, etc.)
+    systemProperties System.properties.findAll { k, v -> k.toString().startsWith('environment') || k.toString().startsWith('cucumber') }
+    finalizedBy 'aggregate'
+}
+
+serenity {
+    reports = ['single-page-html']
+}
+
+gradle.startParameter.continueOnFailure = true
